@@ -1,3 +1,14 @@
 # Ignore .env files (for environment variables)
 .env
- myenv/
+
+# Ignore virtual environment
+myenv/
+   
+# Ignore Python cache files
+__pycache__/
+*.pyc
+   
+# Ignore distribution / packaging
+*.egg-info/
+dist/
+build/
