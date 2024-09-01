@@ -11,7 +11,6 @@ load_dotenv()
 # Access the API key
  
 API_KEY = os.getenv('API_KEY')
-print(f"My API key is: {API_KEY}")
 COMPANY_INFO_ENDPOINT = 'https://company.bigpicture.io/v1/companies/find'
 MAX_RETRIES = 3
 RETRY_DELAY = 5  # seconds
