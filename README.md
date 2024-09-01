@@ -3,8 +3,8 @@ Foregrounds' directory of top funding companies
 
 1. Clone repository
    "
-   git clone https://github.com/Vaidehibi/Company-Directory.git
-   cd Company-Directory
+   git clone https://github.com/Vaidehibi/Company-Directory.git "
+   "cd Company-Directory
    "
 2. Install required libraries
    "
