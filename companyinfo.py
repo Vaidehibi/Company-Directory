@@ -2,14 +2,14 @@ import csv
 import requests
 import time
 from urllib.parse import urlparse
-import os 
+import os
 from dotenv import load_dotenv
+from googletrans import Translator
 
-   # Load environment variables from .env file
+# Load environment variables from .env file
 load_dotenv()
 
 # Access the API key
- 
 API_KEY = os.getenv('API_KEY')
 COMPANY_INFO_ENDPOINT = 'https://company.bigpicture.io/v1/companies/find'
 MAX_RETRIES = 3
@@ -21,6 +21,15 @@ class CompanyInfoFetcher:
       self.endpoint = endpoint
       self.max_retries = max_retries
       self.retry_delay = retry_delay
+      self.translator = Translator()
+
+  def translate_to_english(self, text):
+      try:
+          translation = self.translator.translate(text, dest='en')
+          return translation.text
+      except Exception as e:
+          print(f"Translation error: {e}")
+          return text
 
   def get_company_info(self, domain, company_name, retries=0):
       headers = {
@@ -34,7 +43,11 @@ class CompanyInfoFetcher:
       response = requests.get(self.endpoint, headers=headers, params=params)
       
       if response.status_code == 200:
-          return response.json()
+          company_info = response.json()
+          # Translate fields if necessary
+          if 'description' in company_info:
+              company_info['description'] = self.translate_to_english(company_info['description'])
+          return company_info
       elif response.status_code == 202:
           if retries < self.max_retries:
               print(f"Data for {domain} is being processed asynchronously. Retrying in {self.retry_delay} seconds...")
@@ -52,81 +65,84 @@ class CompanyInfoFetcher:
 
   def get_alternative_info(self, domain, company_name):
       custom_info = {
-      "minimaxi.com": {
-          "domain": "minimaxi.com",
-          "description": "MiniMaxi is an AI-powered platform that helps businesses optimize their operations and decision-making processes.",
-          "foundedYear": 2020,
-          "geo": {"city": "San Francisco", "state": "California", "country": "United States"},
-          "category": {"industry": "Artificial Intelligence", "subIndustry": "Business Optimization"},
-          "metrics": {"employeesRange": "11-50"},
-      },
-      "baichun-ai.com": {
-          "domain": "baichun-ai.com",
-          "description": "Baichuan AI is a Chinese AI company focusing on large language models and natural language processing technologies.",
-          "foundedYear": 2023,
-          "geo": {"city": "Beijing", "state": None, "country": "China"},
-          "category": {"industry": "Artificial Intelligence", "subIndustry": "Natural Language Processing"},
-          "metrics": {"employeesRange": "51-200"},
-      },
-      "etched.com": {
-          "domain": "etched.com",
-          "description": "Etched is an AI-powered platform that helps businesses create and manage digital experiences.",
-          "foundedYear": 2021,
-          "geo": {"city": "New York", "state": "New York", "country": "United States"},
-          "category": {"industry": "Software", "subIndustry": "Digital Experience Platform"},
-          "metrics": {"employeesRange": "11-50"},
-      },
-      "sierra.ai": {
-          "domain": "sierra.ai",
-          "description": "Sierra AI develops AI-powered solutions for environmental monitoring and conservation efforts.",
-          "foundedYear": 2022,
-          "geo": {"city": "Palo Alto", "state": "California", "country": "United States"},
-          "category": {"industry": "Artificial Intelligence", "subIndustry": "Environmental Technology"},
-          "metrics": {"employeesRange": "1-10"},
-      },
-      "magical.ai": {
-          "domain": "magical.ai",
-          "description": "Magical AI creates AI-powered productivity tools to automate repetitive tasks and streamline workflows.",
-          "foundedYear": 2021,
-          "geo": {"city": "San Francisco", "state": "California", "country": "United States"},
-          "category": {"industry": "Artificial Intelligence", "subIndustry": "Productivity Software"},
-          "metrics": {"employeesRange": "11-50"},
-      },
-      "genspark.ai": {
-          "domain": "genspark.ai",
-          "description": "GenSpark AI develops generative AI solutions for creative industries, including design and content creation.",
-          "foundedYear": 2022,
-          "geo": {"city": "Los Angeles", "state": "California", "country": "United States"},
-          "category": {"industry": "Artificial Intelligence", "subIndustry": "Generative AI"},
-          "metrics": {"employeesRange": "11-50"},
-      },
-      "forta.org": {
-          "domain": "forta.org",
-          "description": "Forta is a decentralized monitoring network for detecting threats and anomalies on blockchain networks in real-time.",
-          "foundedYear": 2021,
-          "geo": {"city": "San Francisco", "state": "California", "country": "United States"},
-          "category": {"industry": "Blockchain", "subIndustry": "Security"},
-          "metrics": {"employeesRange": "11-50"},
-      },
-      "ideogram.ai": {
-          "domain": "ideogram.ai",
-          "description": "Ideogram AI specializes in AI-powered image generation and manipulation technologies.",
-          "foundedYear": 2023,
-          "geo": {"city": "San Francisco", "state": "California", "country": "United States"},
-          "category": {"industry": "Artificial Intelligence", "subIndustry": "Image Generation"},
-          "metrics": {"employeesRange": "1-10"},
-      },
-      "perplexity.ai": {
-          "domain": "perplexity.ai",
-          "description": "Perplexity AI develops advanced AI-powered search and question-answering technologies.",
-          "foundedYear": 2022,
-          "geo": {"city": "San Francisco", "state": "California", "country": "United States"},
-          "category": {"industry": "Artificial Intelligence", "subIndustry": "Search Technology"},
-          "metrics": {"employeesRange": "11-50"},
-      },
-  }
+         "minimaxi.com": {
+         "domain": "minimaxi.com",
+         "description": "MiniMaxi is an AI-powered platform that helps businesses optimize their operations and decision-making processes.",
+         "foundedYear": 2020,
+         "geo": {"city": "San Francisco", "state": "California", "country": "United States"},
+         "category": {"industry": "Artificial Intelligence", "subIndustry": "Business Optimization"},
+         "metrics": {"employeesRange": "11-50"},
+     },
+     "baichun-ai.com": {
+         "domain": "baichun-ai.com",
+         "description": "Baichuan AI is a Chinese AI company focusing on large language models and natural language processing technologies.",
+         "foundedYear": 2023,
+         "geo": {"city": "Beijing", "state": None, "country": "China"},
+         "category": {"industry": "Artificial Intelligence", "subIndustry": "Natural Language Processing"},
+         "metrics": {"employeesRange": "51-200"},
+     },
+     "etched.com": {
+         "domain": "etched.com",
+         "description": "Etched is an AI-powered platform that helps businesses create and manage digital experiences.",
+         "foundedYear": 2021,
+         "geo": {"city": "New York", "state": "New York", "country": "United States"},
+         "category": {"industry": "Software", "subIndustry": "Digital Experience Platform"},
+         "metrics": {"employeesRange": "11-50"},
+     },
+     "sierra.ai": {
+         "domain": "sierra.ai",
+         "description": "Sierra AI develops AI-powered solutions for environmental monitoring and conservation efforts.",
+         "foundedYear": 2022,
+         "geo": {"city": "Palo Alto", "state": "California", "country": "United States"},
+         "category": {"industry": "Artificial Intelligence", "subIndustry": "Environmental Technology"},
+         "metrics": {"employeesRange": "1-10"},
+     },
+     "magical.ai": {
+         "domain": "magical.ai",
+         "description": "Magical AI creates AI-powered productivity tools to automate repetitive tasks and streamline workflows.",
+         "foundedYear": 2021,
+         "geo": {"city": "San Francisco", "state": "California", "country": "United States"},
+         "category": {"industry": "Artificial Intelligence", "subIndustry": "Productivity Software"},
+         "metrics": {"employeesRange": "11-50"},
+     },
+     "genspark.ai": {
+         "domain": "genspark.ai",
+         "description": "GenSpark AI develops generative AI solutions for creative industries, including design and content creation.",
+         "foundedYear": 2022,
+         "geo": {"city": "Los Angeles", "state": "California", "country": "United States"},
+         "category": {"industry": "Artificial Intelligence", "subIndustry": "Generative AI"},
+         "metrics": {"employeesRange": "11-50"},
+     },
+     "forta.org": {
+         "domain": "forta.org",
+         "description": "Forta is a decentralized monitoring network for detecting threats and anomalies on blockchain networks in real-time.",
+         "foundedYear": 2021,
+         "geo": {"city": "San Francisco", "state": "California", "country": "United States"},
+         "category": {"industry": "Blockchain", "subIndustry": "Security"},
+         "metrics": {"employeesRange": "11-50"},
+     },
+     "ideogram.ai": {
+         "domain": "ideogram.ai",
+         "description": "Ideogram AI specializes in AI-powered image generation and manipulation technologies.",
+         "foundedYear": 2023,
+         "geo": {"city": "San Francisco", "state": "California", "country": "United States"},
+         "category": {"industry": "Artificial Intelligence", "subIndustry": "Image Generation"},
+         "metrics": {"employeesRange": "1-10"},
+     },
+     "perplexity.ai": {
+         "domain": "perplexity.ai",
+         "description": "Perplexity AI develops advanced AI-powered search and question-answering technologies.",
+         "foundedYear": 2022,
+         "geo": {"city": "San Francisco", "state": "California", "country": "United States"},
+         "category": {"industry": "Artificial Intelligence", "subIndustry": "Search Technology"},
+         "metrics": {"employeesRange": "11-50"},
+     },
+      }
       
-      return custom_info.get(domain, None)
+      info = custom_info.get(domain, None)
+      if info and 'description' in info:
+          info['description'] = self.translate_to_english(info['description'])
+      return info
 
 def extract_domain(url):
   parsed_url = urlparse(url)
@@ -184,7 +200,9 @@ def process_csv(input_file, output_file, fetcher):
           company_info = fetcher.get_company_info(domain, company_name)
           if company_info:
               for attr in attributes:
-                  if attr == 'Location':
+                  if attr == 'description':
+                      row[attr] = fetcher.translate_to_english(company_info.get(attr, ''))
+                  elif attr == 'Location':
                       row[attr] = create_location(company_info.get('geo', {}))
                   elif '.' in attr:
                       parts = attr.split('.')
